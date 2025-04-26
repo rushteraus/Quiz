@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz: Descubra seu Plano de Energia Diária</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS via jsDelivr CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
+  <style>
+    :root { 
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%);
+      min-height: 100vh;
+    }
+    ::selection {
+      background: #90caf9;
+      color: #000;
+    }
+    /* Remove scrollbars (for PDF continuous export and full display) */
+    html, body {
+      overflow: hidden;
+    }
+    /* Card shadow for quiz container */
+    .quiz-shadow {
+      box-shadow: 0 8px 32px rgba(70, 150, 170, 0.14), 0 1.5px 6px rgba(120,200,150,0.09);
+    }
+    /* Remove spinner from number fields (if any) */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    /* Smooth transitions for quiz cards */
+    .quiz-fade {
+      transition: all .45s cubic-bezier(.4,0,.2,1);
+    }
+    /* For PDF print: ensure all is visible */
+    @media print {
+      html, body {
+        overflow: visible !important;
+      }
+      .hide-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="flex justify-center items-center min-h-screen">
+    <div id="quiz-container" class="quiz-shadow bg-white/90 rounded-2xl p-6 w-full max-w-lg quiz-fade 
+        flex flex-col justify-between min-h-[560px] min-w-[335px] relative" style="min-height:560px;">
+
+      <!-- Quiz Dynamic Content Here -->
+    </div>
+  </div>
+  <script>
+    // Questions Data
+    const quizData = [
+      // 0. Início: Gênero
+      {
+        type: 'gender',
+        question: "Com qual gênero você se identifica?",
+        options: [
+          { text: "Feminino", value: "feminino", icon: "fa-person-dress" },
+          { text: "Masculino", value: "masculino", icon: "fa-person" },
+          { text: "Prefiro não dizer", value: "outro", icon: "fa-genderless" }
+        ]
+      },
+      // 1. Faixa Etária
+      {
+        type: 'idade',
+        question: "Em qual faixa de idade você está?",
+        options: [
+          { text: "Menos de 18 anos", value: "menos18" },
+          { text: "18-24 anos", value: "18a24" },
+          { text: "25-34 anos", value: "25a34" },
+          { text: "35-44 anos", value: "35a44" },
+          { text: "45-54 anos", value: "45a54" },
+          { text: "55+ anos", value: "55plus" }
+        ]
+      },
+      // 2
+      {
+        type: 'question',
+        question: "Como você classificaria sua disposição ao acordar na maioria dos dias?",
+        options: [
+          { text: "Sinto energia logo cedo" },
+          { text: "Demoro para me animar pela manhã" },
+          { text: "Já acordo cansado(a)" }
+        ]
+      },
+      // 3
+      {
+        type: 'question',
+        question: "Com que frequência você se sente sem ânimo durante o dia?",
+        options: [
+          { text: "Raramente" },
+          { text: "Algumas vezes" },
+          { text: "Quase sempre" }
+        ]
+      },
+      // Social Proof 1 (4)
+      {
+        type: 'depoimento',
+        text: "✨ Mais de <b>15 mil pessoas</b> usam este método para viver com mais leveza e alegria todos os dias!",
+        cor: "bg-blue-100 text-blue-900"
+      },
+      // 5
+      {
+        type: 'question',
+        question: "Você costuma praticar alguma atividade física?",
+        options: [
+          { text: "Sim, frequentemente" },
+          { text: "Às vezes" },
+          { text: "Não costumo praticar" }
+        ]
+      },
+      // 6
+      {
+        type: 'question',
+        question: "Como é sua alimentação durante a semana?",
+        options: [
+          { text: "Equilibrada e saudável" },
+          { text: "Como de tudo um pouco" },
+          { text: "Pouco saudável" }
+        ]
+      },
+      // 7
+      {
+        type: 'question',
+        question: "Quanto tempo você sente que dedica para momentos de relaxamento/auto-cuidado?",
+        options: [
+          { text: "Diariamente" },
+          { text: "1-2x por semana" },
+          { text: "Quase nunca" }
+        ]
+      },
+      // Social Proof 2 (8)
+      {
+        type: 'depoimento',
+        text: "⭐ Nosso método <b>foi aprovado por todos os participantes</b> com avaliações acima de 5 estrelas.",
+        cor: "bg-green-100 text-green-900"
+      },
+      // 9
+      {
+        type: 'question',
+        question: "Você sente que sua energia varia conforme o dia da semana?",
+        options: [
+          { text: "Sim, bastante" },
+          { text: "Pouca variação" },
+          { text: "Não percebo diferença" }
+        ]
+      },
+      // 10
+      {
+        type: 'question',
+        question: "Com que frequência você sente que não tem vontade de cumprir suas tarefas?",
+        options: [
+          { text: "Raramente" },
+          { text: "De vez em quando" },
+          { text: "Quase sempre" }
+        ]
+      },
+      // 11
+      {
+        type: 'question',
+        question: "Você sente motivação ao pensar em novos projetos ou objetivos?",
+        options: [
+          { text: "Sempre" },
+          { text: "Às vezes" },
+          { text: "Tenho dificuldade em me motivar" }
+        ]
+      },
+      // Social Proof 3 (12)
+      {
+        type: 'depoimento',
+        text: "📊 98% dos usuários relatam <b>melhora significativa</b> na energia e nos resultados após o 1º mês.",
+        cor: "bg-blue-100 text-blue-900"
+      },
+      // 13
+      {
+        type: 'question',
+        question: "O quanto sua disposição influencia sua produtividade?",
+        options: [
+          { text: "Muito" },
+          { text: "Um pouco" },
+          { text: "Quase nada" }
+        ]
+      },
+      // 14
+      {
+        type: 'question',
+        question: "Você sente que dorme o suficiente para se recuperar?",
+        options: [
+          { text: "Sim, sempre" },
+          { text: "Depende da semana" },
+          { text: "Não durmo bem" }
+        ]
+      },
+      // 15
+      {
+        type: 'question',
+        question: "Quando enfrenta desafios, como se sente?",
+        options: [
+          { text: "Confiante e com energia" },
+          { text: "Às vezes desanimado(a)" },
+          { text: "Me sinto sem energia e motivação" }
+        ]
+      },
+      // Social Proof 4 (16)
+      {
+        type: 'depoimento',
+        text: "🏆 Esse método foi <b>reconhecido por especialistas</b> em bem-estar e saúde mental!",
+        cor: "bg-green-100 text-green-900"
+      },
+      // 17
+      {
+        type: 'question',
+        question: "O que mais te ajudaria a ter mais ânimo no dia a dia?",
+        options: [
+          { text: "Planejamento simples" },
+          { text: "Alimentação orientada" },
+          { text: "Métodos para manter a motivação" },
+          { text: "Atividades de lazer" }
+        ]
+      },
+      // 18
+      {
+        type: 'question',
+        question: "Se pudesse melhorar um aspecto da sua rotina hoje, qual seria?",
+        options: [
+          { text: "Sono/Descanso" },
+          { text: "Organização" },
+          { text: "Motivação" },
+          { text: "Evitar cansaço ao longo do dia" }
+        ]
+      }
+    ];
+
+    // State and logic
+    let quizState = {
+      responses: [],
+      current: 0
+    };
+
+    // Render quiz card
+    function renderQuiz() {
+      const container = document.getElementById('quiz-container');
+      container.innerHTML = '';
+
+      // Progress bar on top
+      if (quizState.current < quizData.length) {
+        let progress = Math.round((quizState.current)/quizData.length*100);
+        container.innerHTML += `
+          <div class="w-full h-2 mb-6 rounded-full bg-blue-50 overflow-hidden">
+            <div class="h-full transition-all duration-500 ease-in-out" 
+                 style="width:${progress}%; background: linear-gradient(90deg,#38bdf8 60%,#43e97b 100%);"></div>
+          </div>
+        `;
+      }
+
+      const q = quizData[quizState.current];
+
+      if (!q) return;
+
+      // Gender step
+      if (q.type === 'gender') {
+        container.innerHTML += `
+          <h2 class="text-2xl font-bold text-blue-800 mb-2">Vamos começar? 😊</h2>
+          <p class="text-lg text-gray-600 mb-4">${q.question}</p>
+          <div class="flex flex-col space-y-3 mt-4">
+            ${q.options.map((op,i) => `
+              <button class="flex items-center gap-3 w-full py-3 px-4 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold text-base transition-colors shadow-sm"
+                onclick="answerQuiz('${op.value}')">
+                <i class="fa-solid ${op.icon} text-xl"></i> ${op.text}
+              </button>
+            `).join('')}
+          </div>
+        `;
+      }
+      // Faixa de idade
+      else if(q.type === 'idade') {
+        container.innerHTML += `
+          <h2 class="text-2xl font-semibold text-blue-800 mb-2">Qual sua faixa de idade?</h2>
+          <div class="flex flex-col space-y-3 mt-6">
+            ${q.options.map((op,i) => `
+              <button class="w-full py-3 px-4 rounded-xl bg-green-100 hover:bg-green-200 text-green-900 font-semibold text-base transition-colors shadow-sm"
+                onclick="answerQuiz('${op.value}')">
+                ${op.text}
+              </button>
+            `).join('')}
+          </div>
+        `;
+      }
+      // Social Proof / Depoimento a cada 4 perguntas
+      else if(q.type === 'depoimento') {
+        container.innerHTML += `
+          <div class="w-full py-7 px-5 rounded-xl font-semibold text-center shadow-md mb-4 relative mx-auto ${q.cor}" style="font-size:1.18rem; border: 2px solid #9ae3d3;">
+            <i class="fa-solid fa-bullhorn text-lg mr-2"></i>
+            <span>${q.text}</span>
+          </div>
+          <div class="flex justify-center pt-3">
+            <button class="py-2.5 px-7 text-white font-bold rounded-lg bg-gradient-to-r from-blue-400 to-green-400 hover:from-blue-500 hover:to-green-500 shadow-md focus:outline-none transition-colors"
+                onclick="answerQuiz('ok')">Continuar</button>
+          </div>
+        `;
+      }
+      // Pergunta comum
+      else {
+        container.innerHTML += `
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">${q.question}</h2>
+            <div class="flex flex-col space-y-3 mt-5">
+              ${q.options.map((op,i) => `
+                <button class="w-full py-3 px-4 rounded-xl bg-white hover:bg-blue-100 text-blue-900 font-medium text-base border border-blue-100 transition-colors shadow-sm"
+                  onclick="answerQuiz('${op.text}')">
+                  ${op.text}
+                </button>
+              `).join('')}
+            </div>
+          `;
+      }
+    }
+
+    // Avança para próxima etapa
+    function answerQuiz(val) {
+      quizState.responses.push(val);
+      quizState.current++;
+
+      if(quizState.current >= quizData.length) {
+        renderResult();
+      } else {
+        renderQuiz();
+      }
+    }
+
+    // Barra de progresso final (colorida) e resultado/CTA
+    function renderResult() {
+      const container = document.getElementById('quiz-container');
+      // Cores base para barra
+      let barColor = "linear-gradient(90deg, #38bdf8 0%, #43e97b 100%)";
+
+      // Simulação de "nível de energia" variando um pouco
+      let total = quizData.length;
+      let respostasPositivas = quizState.responses.filter(r => 
+        ['Sinto energia logo cedo','Raramente','Sim, frequentemente','Equilibrada e saudável','Diariamente','Sempre','Sim, sempre','Confiante e com energia'].includes(r)
+      ).length;
+      let energia = Math.round(50 + (respostasPositivas/total)*50); // de 50% até 100%
+
+      container.innerHTML = `
+        <h2 class="text-2xl font-bold text-blue-800 mb-2">Seu Nível de Energia Atual</h2>
+        <div class="w-full h-8 rounded-full mb-7 flex items-center relative shadow" style="background:#e0f2fe">
+          <div class="h-full flex items-center justify-center text-white font-bold text-lg absolute left-0 top-0 transition-all duration-500 ease-in-out"
+            style="width:${energia}%; background: ${barColor}; z-index:1;">
+            <span class="ml-5">${energia}%</span>
+          </div>
+          <span class="absolute right-4 text-blue-700 font-semibold z-10">${energia < 100 ? "Precisando melhorar!" : "Nível excelente!"}</span>
+        </div>
+        <p class="text-base text-gray-700 mb-6 leading-relaxed">
+          Parabéns por finalizar o teste! Sua energia diária pode ser muito melhorada com pequenas mudanças. 
+          A maioria das pessoas descobre que <b>com um plano simples e prático</b> é possível transformar radicalmente a disposição e o ânimo em poucos dias.
+        </p>
+        <div class="text-center mt-8">
+          <a href="https://pay.kiwify.com.br/Fo1poQU" target="_blank"
+             class="inline-block bg-gradient-to-r from-green-400 to-blue-400 hover:from-green-500 hover:to-blue-500 shadow-lg text-white text-lg font-bold px-9 py-3 rounded-xl transition-all duration-200">
+            Quero meu Plano Personalizado Agora!
+          </a>
+        </div>
+        <div class="mt-12 text-sm text-gray-500 text-center">
+          <i class="fa-solid fa-lock"></i> Suas respostas são confidenciais e tratadas com respeito à sua privacidade.
+        </div>
+      `;
+    }
+
+    // Página inicial
+    renderQuiz();
+  </script>
+</body>
+</html>
+
